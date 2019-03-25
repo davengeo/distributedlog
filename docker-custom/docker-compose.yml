@@ -1,0 +1,52 @@
+version: '3.7'
+
+services:
+  dlog:
+    build:
+      context: .
+      args:
+        - VERSION
+    container_name: dlog-custom
+    restart: always
+    networks:
+      - inside
+  web:
+    image: elkozmon/zoonavigator-web:0.6.0
+    container_name: zoonavigator-web
+    ports:
+      - "8000:8000"
+    environment:
+      WEB_HTTP_PORT: 8000
+      API_HOST: "api"
+      API_PORT: 9000
+      AUTO_CONNECT_CONNECTION_STRING: zook:2181
+    depends_on:
+      - api
+      - zook
+    restart: always
+    networks:
+      - inside
+  api:
+    image: elkozmon/zoonavigator-api:0.6.0
+    container_name: zoonavigator-api
+    environment:
+      API_HTTP_PORT: 9000
+    restart: always
+    networks:
+      - inside
+  zook:
+    image: 31z4/zookeeper
+    container_name: zookeeper-1
+    restart: always
+    hostname: zook
+    ports:
+      - 2181:2181
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_STANDALONE_ENABLED: 1
+    networks:
+      - inside
+
+networks:
+  inside:
+    driver: bridge
